@@ -1,5 +1,0 @@
-{
-  "name": "Key Management Dashboard",
-  "description": "A dashboard to generate and manage access keys with different durations (1 day, 1 week, permanent).",
-  "requestFramePermissions": []
-}
