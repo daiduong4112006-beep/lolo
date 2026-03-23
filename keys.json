@@ -1,0 +1,11 @@
+[
+  {
+    "id": "default-key-id",
+    "code": "KEY-MASTER-PRO-2026",
+    "type": "permanent",
+    "createdAt": "2026-03-23T09:15:00.000Z",
+    "expiresAt": null,
+    "status": "active",
+    "note": "Key mặc định để test"
+  }
+]
