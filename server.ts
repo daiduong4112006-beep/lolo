@@ -12,6 +12,53 @@ const DATA_FILE = path.join(process.cwd(), "keys.json");
 
 app.use(cors());
 app.use(express.json());
+app.use(express.static(path.join(process.cwd(), "public")));
+
+// Endpoint tải file cài đặt trực tiếp
+app.get(["/api/download", "/KeyMaster.zip", "/hu_hi.zip"], (req, res) => {
+  const possiblePaths = [
+    path.join(process.cwd(), "public", "KeyMaster.zip"),
+    path.join(process.cwd(), "public", "hu_hi.zip"),
+    path.join(process.cwd(), "dist", "KeyMaster.zip"),
+    path.join(process.cwd(), "dist", "hu_hi.zip")
+  ];
+
+  const targetPath = possiblePaths.find(p => fs.existsSync(p));
+
+  if (targetPath) {
+    res.download(targetPath, "KeyMaster.zip", (err) => {
+      if (err) {
+        console.error("Lỗi khi gửi file tải về:", err);
+      }
+    });
+  } else {
+    res.status(404).json({ error: "File cài đặt chưa có sẵn trên hệ thống" });
+  }
+});
+
+// Endpoint kiểm tra thông tin file cài đặt
+app.get("/api/download/info", (req, res) => {
+  const possiblePaths = [
+    path.join(process.cwd(), "public", "KeyMaster.zip"),
+    path.join(process.cwd(), "public", "hu_hi.zip"),
+    path.join(process.cwd(), "dist", "KeyMaster.zip"),
+    path.join(process.cwd(), "dist", "hu_hi.zip")
+  ];
+
+  const targetPath = possiblePaths.find(p => fs.existsSync(p));
+
+  if (targetPath) {
+    const stats = fs.statSync(targetPath);
+    res.json({
+      available: true,
+      filename: "KeyMaster.zip",
+      size: stats.size,
+      sizeFormatted: `${(stats.size / (1024 * 1024)).toFixed(1)} MB`
+    });
+  } else {
+    res.json({ available: false });
+  }
+});
 
 // Initialize data file if not exists
 if (!fs.existsSync(DATA_FILE)) {

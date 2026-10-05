@@ -182,7 +182,37 @@ export default function App() {
             <p className="text-[10px] uppercase tracking-[0.3em] opacity-40">Security Verification System</p>
           </div>
 
-          <div className="space-y-8">
+          <div className="space-y-6">
+            {/* Download Application Banner */}
+            <section className="bg-white/5 border border-[#E4E3E0]/30 p-4 transition-all hover:border-[#E4E3E0]/60">
+              <div className="flex items-center justify-between gap-3 mb-2">
+                <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-white">
+                  <Download size={16} className="text-emerald-400" />
+                  <span>Tải Bản Cài Đặt Client</span>
+                </div>
+                <span className="text-[10px] bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 px-1.5 py-0.5 font-mono">
+                  v1.0 • ~40 MB
+                </span>
+              </div>
+              <p className="text-[11px] opacity-60 mb-3">
+                Tải gói ứng dụng (ZIP) chứa file chạy trực tiếp trên máy tính.
+              </p>
+              <a
+                href="/api/download"
+                download="KeyMaster.zip"
+                className="w-full bg-[#E4E3E0] hover:bg-white text-[#141414] font-bold text-xs py-2.5 px-4 flex items-center justify-center gap-2 uppercase tracking-wider transition-all duration-150 cursor-pointer no-underline active:scale-[0.98]"
+              >
+                <Download size={15} />
+                Tải Xuống Ngay (Online)
+              </a>
+            </section>
+
+            <div className="relative py-1 flex items-center">
+              <div className="flex-grow border-t border-[#E4E3E0]/10"></div>
+              <span className="flex-shrink mx-4 text-[10px] opacity-20 uppercase">Kích hoạt & Đăng nhập</span>
+              <div className="flex-grow border-t border-[#E4E3E0]/10"></div>
+            </div>
+
             {/* User Key Check */}
             <section>
               <label className="text-[10px] uppercase opacity-50 mb-2 block">Kiểm tra Key của bạn</label>
@@ -204,7 +234,7 @@ export default function App() {
               </div>
             </section>
 
-            <div className="relative py-4 flex items-center">
+            <div className="relative py-1 flex items-center">
               <div className="flex-grow border-t border-[#E4E3E0]/10"></div>
               <span className="flex-shrink mx-4 text-[10px] opacity-20 uppercase">Hoặc</span>
               <div className="flex-grow border-t border-[#E4E3E0]/10"></div>
@@ -248,9 +278,19 @@ export default function App() {
                   initial={{ opacity: 0, y: -10 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0 }}
-                  className="p-3 border border-emerald-500/50 bg-emerald-500/10 text-emerald-400 text-xs flex items-center gap-2"
+                  className="p-3 border border-emerald-500/50 bg-emerald-500/10 text-emerald-400 text-xs flex flex-col gap-2"
                 >
-                  <CheckCircle2 size={14} /> {gateSuccess}
+                  <div className="flex items-center gap-2">
+                    <CheckCircle2 size={14} className="shrink-0" />
+                    <span>{gateSuccess}</span>
+                  </div>
+                  <a
+                    href="/api/download"
+                    download="KeyMaster.zip"
+                    className="inline-flex items-center justify-center gap-1.5 bg-emerald-500 text-black px-3 py-1.5 font-mono font-bold text-[11px] uppercase tracking-wider hover:bg-emerald-400 transition-colors self-start mt-1 cursor-pointer no-underline"
+                  >
+                    <Download size={13} /> Tải ứng dụng về máy
+                  </a>
                 </motion.div>
               )}
             </AnimatePresence>
@@ -314,6 +354,13 @@ export default function App() {
               >
                 <Infinity size={16} /> VĨNH VIỄN
               </button>
+              <a 
+                href="/api/download"
+                download="KeyMaster.zip"
+                className="px-4 py-2 border border-[#141414] bg-[#141414] text-[#E4E3E0] hover:bg-[#2a2a2a] transition-colors flex items-center gap-2 text-sm font-mono cursor-pointer no-underline"
+              >
+                <Download size={16} /> TẢI FILE CLIENT
+              </a>
               <button 
                 onClick={() => setView("gate")}
                 className="px-4 py-2 border border-red-500 text-red-600 hover:bg-red-500 hover:text-white transition-colors flex items-center gap-2 text-sm font-mono cursor-pointer"
@@ -354,12 +401,21 @@ export default function App() {
               <RefreshCw size={14} />
             </button>
           </div>
-          <button 
-            onClick={exportToCSV}
-            className="text-[11px] font-mono uppercase tracking-wider flex items-center gap-2 hover:underline cursor-pointer"
-          >
-            <Download size={14} /> Xuất CSV (Google Sheets)
-          </button>
+          <div className="flex items-center gap-3">
+            <a 
+              href="/api/download"
+              download="KeyMaster.zip"
+              className="text-[11px] font-mono uppercase tracking-wider flex items-center gap-2 border border-[#141414]/30 px-3 py-1.5 hover:bg-[#141414] hover:text-[#E4E3E0] transition-colors no-underline text-[#141414]"
+            >
+              <Download size={14} /> Tải Client (ZIP)
+            </a>
+            <button 
+              onClick={exportToCSV}
+              className="text-[11px] font-mono uppercase tracking-wider flex items-center gap-2 hover:underline cursor-pointer"
+            >
+              <Download size={14} /> Xuất CSV (Google Sheets)
+            </button>
+          </div>
         </div>
 
         {/* Table Header */}
@@ -472,6 +528,10 @@ export default function App() {
               Để kiểm tra Key từ ứng dụng Python, hãy sử dụng API endpoint sau:
               <code className="block mt-2 p-2 bg-[#141414] text-[#E4E3E0] not-italic font-mono break-all">
                 {window.location.origin}/api/validate/MÃ_KEY_CỦA_BẠN?hwid=MÃ_MÁY_CỦA_BẠN
+              </code>
+              <span className="block mt-2">Đường dẫn tải trực tiếp file ứng dụng client:</span>
+              <code className="block mt-1 p-2 bg-[#141414] text-[#E4E3E0] not-italic font-mono break-all">
+                {window.location.origin}/api/download (hoặc /KeyMaster.zip)
               </code>
             </p>
           </div>
