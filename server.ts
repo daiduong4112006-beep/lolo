@@ -77,13 +77,34 @@ interface Key {
   hwid?: string;
 }
 
+const ADMIN_MASTER_CODE = "411206";
+
 const getKeys = (): Key[] => {
+  let list: Key[] = [];
   try {
     const data = fs.readFileSync(DATA_FILE, "utf-8");
-    return JSON.parse(data);
+    list = JSON.parse(data);
   } catch (e) {
-    return [];
+    list = [];
   }
+
+  // Đảm bảo Key đặc biệt Quản trị viên 411206 luôn tồn tại
+  if (!list.some(k => k.code === ADMIN_MASTER_CODE)) {
+    list.unshift({
+      id: "admin-master-411206",
+      code: ADMIN_MASTER_CODE,
+      type: "permanent",
+      createdAt: "2026-01-01T00:00:00.000Z",
+      expiresAt: null,
+      status: "active",
+      note: "Key đặc biệt Quản trị viên (Vĩnh viễn - Không giới hạn máy)",
+      username: "Quản trị viên (Admin)",
+      hwid: "ALL (Không khóa máy)"
+    });
+    saveKeys(list);
+  }
+
+  return list;
 };
 
 const saveKeys = (keys: Key[]) => {
@@ -96,6 +117,9 @@ app.get("/api/keys", (req, res) => {
   // Update status based on expiration
   const now = new Date();
   const updatedKeys = keys.map(k => {
+    if (k.code === ADMIN_MASTER_CODE) {
+      return { ...k, status: "active" as const, expiresAt: null };
+    }
     if (k.status === "active" && k.expiresAt && isAfter(now, new Date(k.expiresAt))) {
       return { ...k, status: "expired" as const };
     }
@@ -136,6 +160,10 @@ app.post("/api/keys/generate", (req, res) => {
 app.delete("/api/keys/:id", (req, res) => {
   const { id } = req.params;
   const keys = getKeys();
+  const target = keys.find(k => k.id === id);
+  if (target && target.code === ADMIN_MASTER_CODE) {
+    return res.status(400).json({ error: "Không thể xóa Key đặc biệt của Quản trị viên!" });
+  }
   const filtered = keys.filter(k => k.id !== id);
   saveKeys(filtered);
   res.json({ success: true });
@@ -165,12 +193,25 @@ app.put("/api/keys/:id", (req, res) => {
 app.get("/api/validate/:code", (req, res) => {
   const { code } = req.params;
   const { hwid } = req.query;
-  const keys = getKeys();
-  const keyIndex = keys.findIndex(k => k.code === code);
-  const key = keys[keyIndex];
 
   // Always return JSON, even for errors
   res.setHeader('Content-Type', 'application/json');
+
+  // Key đặc biệt vĩnh viễn cho Quản trị viên (Master Admin Key)
+  if (code && code.trim() === ADMIN_MASTER_CODE) {
+    return res.json({ 
+      valid: true, 
+      message: "Key đặc biệt Quản trị viên (Vĩnh viễn - Không giới hạn thiết bị)", 
+      type: "permanent",
+      username: "Administrator",
+      isAdmin: true,
+      expiresAt: null
+    });
+  }
+
+  const keys = getKeys();
+  const keyIndex = keys.findIndex(k => k.code === code);
+  const key = keys[keyIndex];
 
   if (!key) {
     return res.json({ 

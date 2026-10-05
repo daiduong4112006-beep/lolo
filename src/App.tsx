@@ -55,7 +55,7 @@ export default function App() {
 
   const handleAdminLogin = () => {
     const correctPassword = import.meta.env.VITE_ADMIN_PASSWORD || "4112006";
-    if (adminPassword === correctPassword) {
+    if (adminPassword === correctPassword || adminPassword === "411206") {
       setView("dashboard");
       setGateError("");
     } else {
@@ -69,10 +69,14 @@ export default function App() {
     if (!userKey) return;
 
     try {
-      const res = await fetch(`/api/validate/${userKey}`);
+      const res = await fetch(`/api/validate/${encodeURIComponent(userKey.trim())}`);
       const data = await res.json();
       if (data.valid) {
-        setGateSuccess(`Key hợp lệ! Loại: ${data.type}. Hết hạn: ${data.expiresAt ? format(new Date(data.expiresAt), "dd/MM/yyyy HH:mm") : "Vĩnh viễn"}`);
+        if (data.isAdmin || userKey.trim() === "411206") {
+          setGateSuccess("Key đặc biệt Quản trị viên (Master Admin Key) - Vĩnh viễn & Không giới hạn máy!");
+        } else {
+          setGateSuccess(`Key hợp lệ! Loại: ${data.type}. Hết hạn: ${data.expiresAt ? format(new Date(data.expiresAt), "dd/MM/yyyy HH:mm") : "Vĩnh viễn"}`);
+        }
       } else {
         setGateError(data.message || "Key không hợp lệ!");
       }
@@ -448,6 +452,11 @@ export default function App() {
                   <div className="flex items-center gap-3 font-mono text-sm truncate">
                     <KeyIcon size={14} className="opacity-30 group-hover:opacity-100" />
                     <span className="truncate">{key.code}</span>
+                    {key.code === "411206" && (
+                      <span className="text-[9px] bg-amber-500/20 text-amber-600 border border-amber-500/40 px-1 py-0.2 shrink-0">
+                        ADMIN
+                      </span>
+                    )}
                     <button 
                       onClick={() => copyToClipboard(key.code, key.id)}
                       className="opacity-0 group-hover:opacity-100 transition-opacity p-1 hover:bg-[#E4E3E0] hover:text-[#141414] rounded cursor-pointer"
@@ -505,12 +514,18 @@ export default function App() {
                   </div>
 
                   <div className="flex justify-end">
-                    <button 
-                      onClick={() => deleteKey(key.id)}
-                      className="p-2 text-red-500 opacity-0 group-hover:opacity-100 hover:bg-red-500 hover:text-white transition-all rounded cursor-pointer"
-                    >
-                      <Trash2 size={14} />
-                    </button>
+                    {key.code === "411206" ? (
+                      <span className="p-2 text-amber-600 opacity-60 group-hover:opacity-100" title="Key Quản trị viên cố định">
+                        <ShieldCheck size={14} />
+                      </span>
+                    ) : (
+                      <button 
+                        onClick={() => deleteKey(key.id)}
+                        className="p-2 text-red-500 opacity-0 group-hover:opacity-100 hover:bg-red-500 hover:text-white transition-all rounded cursor-pointer"
+                      >
+                        <Trash2 size={14} />
+                      </button>
+                    )}
                   </div>
                 </motion.div>
               ))}
@@ -529,10 +544,13 @@ export default function App() {
               <code className="block mt-2 p-2 bg-[#141414] text-[#E4E3E0] not-italic font-mono break-all">
                 {window.location.origin}/api/validate/MÃ_KEY_CỦA_BẠN?hwid=MÃ_MÁY_CỦA_BẠN
               </code>
+              <span className="block mt-2 font-bold text-amber-600">Key Quản trị viên vĩnh viễn (Master Key):</span>
+              <code className="block mt-1 p-2 bg-[#141414] text-amber-400 not-italic font-mono break-all">
+                411206 (Không giới hạn máy, thời hạn vĩnh viễn)
+              </code>
               <span className="block mt-2">Đường dẫn tải trực tiếp file ứng dụng client:</span>
               <code className="block mt-1 p-2 bg-[#141414] text-[#E4E3E0] not-italic font-mono break-all">
                 {window.location.origin}/api/download (hoặc /KeyMaster.zip)
-              </code>
             </p>
           </div>
           
