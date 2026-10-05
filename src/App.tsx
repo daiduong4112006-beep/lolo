@@ -551,6 +551,7 @@ export default function App() {
               <span className="block mt-2">Đường dẫn tải trực tiếp file ứng dụng client:</span>
               <code className="block mt-1 p-2 bg-[#141414] text-[#E4E3E0] not-italic font-mono break-all">
                 {window.location.origin}/api/download (hoặc /KeyMaster.zip)
+              </code>
             </p>
           </div>
           
