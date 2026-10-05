@@ -4,6 +4,7 @@ A professional dashboard to generate and manage access keys for your application
 
 ## Features
 - **Key Generation:** 1 Day, 1 Week, and Permanent keys.
+- **Online File Download:** Tải trực tiếp gói ứng dụng client (`KeyMaster.zip`) từ trang chủ và dashboard thông qua endpoint `/api/download`.
 - **Public API:** Easy integration with any language using simple GET requests.
 - **Admin Dashboard:** Secure management of all generated keys.
 - **CSV Export:** Export your database for use in Google Sheets or Excel.
