@@ -132,26 +132,38 @@ app.get("/api/keys", (req, res) => {
 });
 
 app.post("/api/keys/generate", (req, res) => {
-  const { type, note, username } = req.body;
+  const { type, note, username, customCode, isMaster } = req.body;
   const now = new Date();
   let expiresAt: Date | null = null;
 
   if (type === "1day") expiresAt = addDays(now, 1);
   else if (type === "1week") expiresAt = addDays(now, 7);
 
+  const keys = getKeys();
+
+  let code = "";
+  if (customCode && typeof customCode === "string" && customCode.trim()) {
+    code = customCode.trim();
+    // Kiểm tra xem key đã tồn tại chưa
+    if (keys.some(k => k.code.toLowerCase() === code.toLowerCase())) {
+      return res.status(400).json({ error: `Mã key "${code}" đã tồn tại trên hệ thống!` });
+    }
+  } else {
+    code = `KEY-${Math.random().toString(36).substring(2, 10).toUpperCase()}-${Math.random().toString(36).substring(2, 6).toUpperCase()}`;
+  }
+
   const newKey: Key = {
     id: uuidv4(),
-    code: `KEY-${Math.random().toString(36).substring(2, 10).toUpperCase()}-${Math.random().toString(36).substring(2, 6).toUpperCase()}`,
+    code,
     type,
     createdAt: now.toISOString(),
     expiresAt: expiresAt ? expiresAt.toISOString() : null,
     status: "active",
-    note: note || "",
-    username: username || "",
-    hwid: ""
+    note: note || (isMaster ? "Key Quản trị viên (Không giới hạn máy)" : ""),
+    username: username || (isMaster ? "Administrator" : ""),
+    hwid: isMaster ? "ALL" : ""
   };
 
-  const keys = getKeys();
   keys.push(newKey);
   saveKeys(keys);
   res.json(newKey);
@@ -227,6 +239,18 @@ app.get("/api/validate/:code", (req, res) => {
       valid: false, 
       message: "Key đã hết hạn sử dụng", 
       type: key.type 
+    });
+  }
+
+  // Nếu là Key Quản trị viên hoặc hwid === "ALL" (Không giới hạn máy)
+  if (key.hwid === "ALL" || key.hwid === "all") {
+    return res.json({ 
+      valid: true, 
+      message: "Key Quản trị viên hợp lệ (Không giới hạn máy)", 
+      type: key.type,
+      username: key.username || "Administrator",
+      isAdmin: true,
+      expiresAt: key.expiresAt
     });
   }
 

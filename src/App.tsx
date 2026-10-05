@@ -31,6 +31,10 @@ export default function App() {
   const [generating, setGenerating] = useState(false);
   const [search, setSearch] = useState("");
   const [username, setUsername] = useState("");
+  const [customCode, setCustomCode] = useState("");
+  const [isMaster, setIsMaster] = useState(false);
+  const [createError, setCreateError] = useState("");
+  const [createSuccess, setCreateSuccess] = useState("");
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editValue, setEditValue] = useState("");
   const [copiedId, setCopiedId] = useState<string | null>(null);
@@ -87,17 +91,33 @@ export default function App() {
 
   const generateKey = async (type: KeyType) => {
     setGenerating(true);
+    setCreateError("");
+    setCreateSuccess("");
     try {
       const res = await fetch("/api/keys/generate", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ type, username }),
+        body: JSON.stringify({ 
+          type, 
+          username, 
+          customCode: customCode.trim(),
+          isMaster
+        }),
       });
-      const newKey = await res.json();
-      setKeys([newKey, ...keys]);
-      setUsername(""); // Reset username after generation
+      const data = await res.json();
+      if (!res.ok) {
+        setCreateError(data.error || "Tạo key thất bại!");
+        return;
+      }
+      setKeys([data, ...keys]);
+      setUsername("");
+      setCustomCode("");
+      setIsMaster(false);
+      setCreateSuccess(`Đã tạo thành công Key: ${data.code}`);
+      setTimeout(() => setCreateSuccess(""), 4000);
     } catch (err) {
       console.error("Failed to generate key", err);
+      setCreateError("Lỗi kết nối khi tạo key!");
     } finally {
       setGenerating(false);
     }
@@ -325,18 +345,64 @@ export default function App() {
             </p>
           </div>
           
-          <div className="flex flex-col gap-3">
-            <div className="flex flex-col gap-1">
-              <label className="text-[10px] font-mono uppercase opacity-40">Tên người dùng (Nhập từ bàn phím)</label>
-              <input 
-                type="text" 
-                placeholder="Nhập tên người dùng..."
-                className="bg-transparent border border-[#141414] px-3 py-2 text-sm font-mono outline-none focus:ring-1 focus:ring-[#141414] w-full"
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
-              />
+          <div className="flex flex-col gap-3 w-full md:w-auto max-w-xl">
+            {/* Input Row: Custom Key & Username */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div className="flex flex-col gap-1">
+                <label className="text-[10px] font-mono uppercase opacity-60 flex items-center gap-1 font-bold">
+                  <KeyIcon size={12} /> Mã Key tùy chọn (Để trống sẽ tự sinh)
+                </label>
+                <input 
+                  type="text" 
+                  placeholder="VD: 411206, VIP-MASTER..."
+                  className="bg-transparent border border-[#141414] px-3 py-2 text-sm font-mono outline-none focus:ring-1 focus:ring-[#141414] w-full"
+                  value={customCode}
+                  onChange={(e) => setCustomCode(e.target.value)}
+                />
+              </div>
+              <div className="flex flex-col gap-1">
+                <label className="text-[10px] font-mono uppercase opacity-60 font-bold">
+                  Tên người dùng (Tùy chọn)
+                </label>
+                <input 
+                  type="text" 
+                  placeholder="Nhập tên người dùng..."
+                  className="bg-transparent border border-[#141414] px-3 py-2 text-sm font-mono outline-none focus:ring-1 focus:ring-[#141414] w-full"
+                  value={username}
+                  onChange={(e) => setUsername(e.target.value)}
+                />
+              </div>
             </div>
-            <div className="flex flex-wrap gap-3">
+
+            {/* Admin option checkbox */}
+            <div className="flex items-center gap-2">
+              <label className="flex items-center gap-2 text-xs font-mono cursor-pointer select-none">
+                <input 
+                  type="checkbox"
+                  checked={isMaster}
+                  onChange={(e) => setIsMaster(e.target.checked)}
+                  className="cursor-pointer accent-[#141414]"
+                />
+                <span className="font-bold text-amber-800">
+                  Key Quản trị viên (Không giới hạn thiết bị / Không khóa HWID)
+                </span>
+              </label>
+            </div>
+
+            {/* Error & Success Feedback */}
+            {createError && (
+              <div className="text-xs text-red-600 font-mono bg-red-100 p-2 border border-red-300 flex items-center gap-1">
+                <AlertCircle size={14} /> {createError}
+              </div>
+            )}
+            {createSuccess && (
+              <div className="text-xs text-emerald-700 font-mono bg-emerald-100 p-2 border border-emerald-300 flex items-center gap-1">
+                <CheckCircle2 size={14} /> {createSuccess}
+              </div>
+            )}
+
+            {/* Action Buttons */}
+            <div className="flex flex-wrap gap-2 pt-1">
               <button 
                 onClick={() => generateKey("1day")}
                 disabled={generating}
@@ -354,14 +420,14 @@ export default function App() {
               <button 
                 onClick={() => generateKey("permanent")}
                 disabled={generating}
-                className="px-4 py-2 border border-[#141414] hover:bg-[#141414] hover:text-[#E4E3E0] transition-colors flex items-center gap-2 text-sm font-mono cursor-pointer disabled:opacity-50"
+                className="px-4 py-2 border border-[#141414] bg-[#141414] text-[#E4E3E0] hover:bg-[#2a2a2a] transition-colors flex items-center gap-2 text-sm font-mono cursor-pointer disabled:opacity-50"
               >
                 <Infinity size={16} /> VĨNH VIỄN
               </button>
               <a 
                 href="/api/download"
                 download="KeyMaster.zip"
-                className="px-4 py-2 border border-[#141414] bg-[#141414] text-[#E4E3E0] hover:bg-[#2a2a2a] transition-colors flex items-center gap-2 text-sm font-mono cursor-pointer no-underline"
+                className="px-4 py-2 border border-[#141414] hover:bg-[#141414] hover:text-[#E4E3E0] transition-colors flex items-center gap-2 text-sm font-mono cursor-pointer no-underline text-[#141414]"
               >
                 <Download size={16} /> TẢI FILE CLIENT
               </a>
