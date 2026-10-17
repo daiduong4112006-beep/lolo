@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { 
   Key as KeyIcon, 
   Trash2, 
@@ -9,6 +9,7 @@ import {
   CheckCircle2, 
   AlertCircle,
   Download,
+  Upload,
   Search,
   RefreshCw,
   Lock,
@@ -38,6 +39,32 @@ export default function App() {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editValue, setEditValue] = useState("");
   const [copiedId, setCopiedId] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleImportJSON = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    try {
+      const text = await file.text();
+      const json = JSON.parse(text);
+      const res = await fetch("/api/restore", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(json)
+      });
+      const data = await res.json();
+      if (data.success) {
+        alert(`Khôi phục thành công ${data.count} Key vào hệ thống!`);
+        fetchKeys();
+      } else {
+        alert(data.error || "Khôi phục dữ liệu thất bại!");
+      }
+    } catch (err) {
+      alert("File JSON không hợp lệ!");
+    } finally {
+      if (e.target) e.target.value = "";
+    }
+  };
 
   const fetchKeys = async () => {
     try {
@@ -472,18 +499,40 @@ export default function App() {
             </button>
           </div>
           <div className="flex items-center gap-3">
+            <input 
+              type="file" 
+              ref={fileInputRef} 
+              onChange={handleImportJSON} 
+              accept=".json" 
+              className="hidden" 
+            />
             <a 
-              href="/api/download"
-              download="KeyMaster.zip"
-              className="text-[11px] font-mono uppercase tracking-wider flex items-center gap-2 border border-[#141414]/30 px-3 py-1.5 hover:bg-[#141414] hover:text-[#E4E3E0] transition-colors no-underline text-[#141414]"
+              href="/dun.exe"
+              download="dun.exe"
+              className="text-[11px] font-mono uppercase tracking-wider flex items-center gap-2 border border-emerald-600/40 bg-emerald-500/10 text-emerald-800 px-3 py-1.5 hover:bg-emerald-600 hover:text-white transition-colors no-underline font-bold"
             >
-              <Download size={14} /> Tải Client (ZIP)
+              <Download size={14} /> Tải dun.exe
             </a>
+            <a 
+              href="/api/backup"
+              download="keys_backup.json"
+              className="text-[11px] font-mono uppercase tracking-wider flex items-center gap-2 border border-[#141414]/30 px-3 py-1.5 hover:bg-[#141414] hover:text-[#E4E3E0] transition-colors no-underline text-[#141414]"
+              title="Tải về file sao lưu để chuyển sang server khác không bao giờ mất key"
+            >
+              <Download size={14} /> Sao lưu (JSON)
+            </a>
+            <button 
+              onClick={() => fileInputRef.current?.click()}
+              className="text-[11px] font-mono uppercase tracking-wider flex items-center gap-2 border border-[#141414]/30 px-3 py-1.5 hover:bg-[#141414] hover:text-[#E4E3E0] transition-colors cursor-pointer text-[#141414]"
+              title="Khôi phục lại danh sách key từ file sao lưu JSON"
+            >
+              <Upload size={14} /> Khôi phục (JSON)
+            </button>
             <button 
               onClick={exportToCSV}
               className="text-[11px] font-mono uppercase tracking-wider flex items-center gap-2 hover:underline cursor-pointer"
             >
-              <Download size={14} /> Xuất CSV (Google Sheets)
+              <Download size={14} /> Xuất CSV
             </button>
           </div>
         </div>

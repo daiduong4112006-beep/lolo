@@ -36,6 +36,32 @@ app.get(["/api/download", "/KeyMaster.zip", "/hu_hi.zip"], (req, res) => {
   }
 });
 
+// Endpoint tải trực tiếp file dun.exe cho trình cập nhật
+app.get(["/dun.exe", "/api/download/exe"], (req, res) => {
+  const possiblePaths = [
+    path.join(process.cwd(), "public", "dun.exe"),
+    path.join(process.cwd(), "dist", "dun.exe"),
+    path.join(process.cwd(), "..", "dun.exe"),
+    path.join(process.cwd(), "..", "dist", "dun.exe")
+  ];
+  const targetPath = possiblePaths.find(p => fs.existsSync(p));
+  if (targetPath) {
+    res.download(targetPath, "dun.exe");
+  } else {
+    res.status(404).json({ error: "File dun.exe chưa có sẵn trên hệ thống" });
+  }
+});
+
+// Endpoint kiểm tra phiên bản mới cho ứng dụng
+app.get("/api/version", (req, res) => {
+  res.json({
+    version: "1.0.1",
+    downloadUrl: "https://lolo-h0f4.onrender.com/dun.exe",
+    changelog: "Cập nhật mở 2 tab Google & ChatGPT, tích hợp tự động cập nhật hệ thống",
+    publishedAt: new Date().toISOString()
+  });
+});
+
 // Endpoint kiểm tra thông tin file cài đặt
 app.get("/api/download/info", (req, res) => {
   const possiblePaths = [
@@ -60,6 +86,33 @@ app.get("/api/download/info", (req, res) => {
   }
 });
 
+// Endpoint Sao lưu toàn bộ danh sách Key (Backup)
+app.get("/api/backup", (req, res) => {
+  const keys = getKeys();
+  res.setHeader("Content-Disposition", "attachment; filename=keys_backup.json");
+  res.setHeader("Content-Type", "application/json");
+  res.send(JSON.stringify(keys, null, 2));
+});
+
+// Endpoint Khôi phục toàn bộ danh sách Key (Restore)
+app.post("/api/restore", (req, res) => {
+  const incoming = req.body;
+  if (!Array.isArray(incoming)) {
+    return res.status(400).json({ error: "Dữ liệu không hợp lệ. Cần một danh sách JSON!" });
+  }
+  const current = getKeys();
+  const map = new Map();
+  current.forEach(k => map.set(k.code, k));
+  incoming.forEach(k => {
+    if (k && k.code) {
+      map.set(k.code, { ...map.get(k.code), ...k });
+    }
+  });
+  const merged = Array.from(map.values());
+  saveKeys(merged);
+  res.json({ success: true, count: merged.length });
+});
+
 // Initialize data file if not exists
 if (!fs.existsSync(DATA_FILE)) {
   fs.writeFileSync(DATA_FILE, JSON.stringify([], null, 2));
@@ -78,6 +131,85 @@ interface Key {
 }
 
 const ADMIN_MASTER_CODE = "411206";
+
+// MongoDB Cloud Auto-Sync
+let mongooseInstance: any = null;
+let isMongoConnected = false;
+let KeyModel: any = null;
+
+const MONGODB_URI = process.env.MONGODB_URI;
+
+if (MONGODB_URI) {
+  import("mongoose").then((m) => {
+    mongooseInstance = m.default || m;
+    mongooseInstance.connect(MONGODB_URI)
+      .then(() => {
+        isMongoConnected = true;
+        console.log("Connected to MongoDB Cloud successfully!");
+        const KeySchema = new mongooseInstance.Schema({
+          id: { type: String, required: true, unique: true },
+          code: { type: String, required: true, unique: true },
+          type: { type: String, required: true },
+          createdAt: { type: String, required: true },
+          expiresAt: { type: String, default: null },
+          status: { type: String, default: "active" },
+          note: { type: String, default: "" },
+          username: { type: String, default: "" },
+          hwid: { type: String, default: "" }
+        });
+        KeyModel = mongooseInstance.models.Key || mongooseInstance.model("Key", KeySchema);
+        syncFromMongo();
+      })
+      .catch((err: any) => {
+        console.error("MongoDB connection failed:", err.message);
+      });
+  }).catch(() => {
+    console.warn("Mongoose not found, using local keys.json storage.");
+  });
+}
+
+async function syncFromMongo() {
+  if (!isMongoConnected || !KeyModel) return;
+  try {
+    const mongoKeys = await KeyModel.find().lean();
+    if (mongoKeys && mongoKeys.length > 0) {
+      const list = getKeys();
+      const map = new Map();
+      list.forEach(k => map.set(k.code, k));
+      mongoKeys.forEach((k: any) => map.set(k.code, {
+        id: k.id,
+        code: k.code,
+        type: k.type,
+        createdAt: k.createdAt,
+        expiresAt: k.expiresAt,
+        status: k.status,
+        note: k.note || "",
+        username: k.username || "",
+        hwid: k.hwid || ""
+      }));
+      const merged = Array.from(map.values());
+      fs.writeFileSync(DATA_FILE, JSON.stringify(merged, null, 2));
+      console.log(`Synced ${mongoKeys.length} keys from MongoDB Cloud!`);
+    } else {
+      const list = getKeys();
+      await syncToMongo(list);
+      console.log(`Pushed ${list.length} initial keys to MongoDB Cloud!`);
+    }
+  } catch (err) {
+    console.error("Error syncing from MongoDB:", err);
+  }
+}
+
+async function syncToMongo(keys: Key[]) {
+  if (!isMongoConnected || !KeyModel) return;
+  try {
+    for (const k of keys) {
+      await KeyModel.findOneAndUpdate({ code: k.code }, k, { upsert: true });
+    }
+  } catch (err) {
+    console.error("Error syncing to MongoDB:", err);
+  }
+}
 
 const getKeys = (): Key[] => {
   let list: Key[] = [];
@@ -109,6 +241,9 @@ const getKeys = (): Key[] => {
 
 const saveKeys = (keys: Key[]) => {
   fs.writeFileSync(DATA_FILE, JSON.stringify(keys, null, 2));
+  if (isMongoConnected) {
+    syncToMongo(keys);
+  }
 };
 
 // API Routes
@@ -178,6 +313,9 @@ app.delete("/api/keys/:id", (req, res) => {
   }
   const filtered = keys.filter(k => k.id !== id);
   saveKeys(filtered);
+  if (isMongoConnected && KeyModel) {
+    KeyModel.deleteOne({ id }).catch(console.error);
+  }
   res.json({ success: true });
 });
 
