@@ -55,9 +55,9 @@ app.get(["/dun.exe", "/api/download/exe"], (req, res) => {
 // Endpoint kiểm tra phiên bản mới cho ứng dụng
 app.get("/api/version", (req, res) => {
   res.json({
-    version: "1.0.1",
+    version: "1.0.2",
     downloadUrl: "https://lolo-h0f4.onrender.com/dun.exe",
-    changelog: "Cập nhật mở 2 tab Google & ChatGPT, tích hợp tự động cập nhật hệ thống",
+    changelog: "Căn giữa màn hình, ghim Topmost, thêm phím tắt Alt+A",
     publishedAt: new Date().toISOString()
   });
 });
