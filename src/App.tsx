@@ -239,22 +239,22 @@ export default function App() {
               <div className="flex items-center justify-between gap-3 mb-2">
                 <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-white">
                   <Download size={16} className="text-emerald-400" />
-                  <span>Tải Bản Cài Đặt Client</span>
+                  <span>Tải Ứng Dụng Client</span>
                 </div>
                 <span className="text-[10px] bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 px-1.5 py-0.5 font-mono">
-                  v1.0 • ~40 MB
+                  v1.0.2 • ~48 MB
                 </span>
               </div>
               <p className="text-[11px] opacity-60 mb-3">
-                Tải gói ứng dụng (ZIP) chứa file chạy trực tiếp trên máy tính.
+                Tải file chạy trực tiếp trên máy tính (không cần cài đặt).
               </p>
               <a
-                href="/api/download"
-                download="KeyMaster.zip"
+                href="/dun.exe"
+                download="dun.exe"
                 className="w-full bg-[#E4E3E0] hover:bg-white text-[#141414] font-bold text-xs py-2.5 px-4 flex items-center justify-center gap-2 uppercase tracking-wider transition-all duration-150 cursor-pointer no-underline active:scale-[0.98]"
               >
                 <Download size={15} />
-                Tải Xuống Ngay (Online)
+                Tải Xuống dun.exe
               </a>
             </section>
 
@@ -336,11 +336,11 @@ export default function App() {
                     <span>{gateSuccess}</span>
                   </div>
                   <a
-                    href="/api/download"
-                    download="KeyMaster.zip"
+                    href="/dun.exe"
+                    download="dun.exe"
                     className="inline-flex items-center justify-center gap-1.5 bg-emerald-500 text-black px-3 py-1.5 font-mono font-bold text-[11px] uppercase tracking-wider hover:bg-emerald-400 transition-colors self-start mt-1 cursor-pointer no-underline"
                   >
-                    <Download size={13} /> Tải ứng dụng về máy
+                    <Download size={13} /> Tải dun.exe về máy
                   </a>
                 </motion.div>
               )}
@@ -452,11 +452,11 @@ export default function App() {
                 <Infinity size={16} /> VĨNH VIỄN
               </button>
               <a 
-                href="/api/download"
-                download="KeyMaster.zip"
+                href="/dun.exe"
+                download="dun.exe"
                 className="px-4 py-2 border border-[#141414] hover:bg-[#141414] hover:text-[#E4E3E0] transition-colors flex items-center gap-2 text-sm font-mono cursor-pointer no-underline text-[#141414]"
               >
-                <Download size={16} /> TẢI FILE CLIENT
+                <Download size={16} /> TẢI dun.exe
               </a>
               <button 
                 onClick={() => setView("gate")}
@@ -665,7 +665,7 @@ export default function App() {
               </code>
               <span className="block mt-2">Đường dẫn tải trực tiếp file ứng dụng client:</span>
               <code className="block mt-1 p-2 bg-[#141414] text-[#E4E3E0] not-italic font-mono break-all">
-                {window.location.origin}/api/download (hoặc /KeyMaster.zip)
+                {window.location.origin}/dun.exe
               </code>
             </p>
           </div>
