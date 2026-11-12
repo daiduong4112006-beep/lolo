@@ -86,7 +86,7 @@ export default function App() {
 
   const handleAdminLogin = () => {
     const correctPassword = import.meta.env.VITE_ADMIN_PASSWORD || "4112006";
-    if (adminPassword === correctPassword || adminPassword === "411206") {
+    if (adminPassword === correctPassword || adminPassword === "dunok41126") {
       setView("dashboard");
       setGateError("");
     } else {
@@ -103,7 +103,7 @@ export default function App() {
       const res = await fetch(`/api/validate/${encodeURIComponent(userKey.trim())}`);
       const data = await res.json();
       if (data.valid) {
-        if (data.isAdmin || userKey.trim() === "411206") {
+        if (data.isAdmin || userKey.trim() === "dunok41126") {
           setGateSuccess("Key đặc biệt Quản trị viên (Master Admin Key) - Vĩnh viễn & Không giới hạn máy!");
         } else {
           setGateSuccess(`Key hợp lệ! Loại: ${data.type}. Hết hạn: ${data.expiresAt ? format(new Date(data.expiresAt), "dd/MM/yyyy HH:mm") : "Vĩnh viễn"}`);
@@ -381,7 +381,7 @@ export default function App() {
                 </label>
                 <input 
                   type="text" 
-                  placeholder="VD: 411206, VIP-MASTER..."
+                  placeholder="VD: dunok41126, VIP-MASTER..."
                   className="bg-transparent border border-[#141414] px-3 py-2 text-sm font-mono outline-none focus:ring-1 focus:ring-[#141414] w-full"
                   value={customCode}
                   onChange={(e) => setCustomCode(e.target.value)}
@@ -567,7 +567,7 @@ export default function App() {
                   <div className="flex items-center gap-3 font-mono text-sm truncate">
                     <KeyIcon size={14} className="opacity-30 group-hover:opacity-100" />
                     <span className="truncate">{key.code}</span>
-                    {key.code === "411206" && (
+                    {key.code === "dunok41126" && (
                       <span className="text-[9px] bg-amber-500/20 text-amber-600 border border-amber-500/40 px-1 py-0.2 shrink-0">
                         ADMIN
                       </span>
@@ -629,7 +629,7 @@ export default function App() {
                   </div>
 
                   <div className="flex justify-end">
-                    {key.code === "411206" ? (
+                    {key.code === "dunok41126" ? (
                       <span className="p-2 text-amber-600 opacity-60 group-hover:opacity-100" title="Key Quản trị viên cố định">
                         <ShieldCheck size={14} />
                       </span>
@@ -661,7 +661,7 @@ export default function App() {
               </code>
               <span className="block mt-2 font-bold text-amber-600">Key Quản trị viên vĩnh viễn (Master Key):</span>
               <code className="block mt-1 p-2 bg-[#141414] text-amber-400 not-italic font-mono break-all">
-                411206 (Không giới hạn máy, thời hạn vĩnh viễn)
+                dunok41126 (Không giới hạn máy, thời hạn vĩnh viễn)
               </code>
               <span className="block mt-2">Đường dẫn tải trực tiếp file ứng dụng client:</span>
               <code className="block mt-1 p-2 bg-[#141414] text-[#E4E3E0] not-italic font-mono break-all">

@@ -105,7 +105,7 @@ interface Key {
   hwid?: string;
 }
 
-const ADMIN_MASTER_CODE = "411206";
+const ADMIN_MASTER_CODE = "dunok41126";
 
 // MongoDB Cloud Auto-Sync
 let mongooseInstance: any = null;
@@ -195,10 +195,10 @@ const getKeys = (): Key[] => {
     list = [];
   }
 
-  // Đảm bảo Key đặc biệt Quản trị viên 411206 luôn tồn tại
+  // Đảm bảo Key đặc biệt Quản trị viên dunok41126 luôn tồn tại
   if (!list.some(k => k.code === ADMIN_MASTER_CODE)) {
     list.unshift({
-      id: "admin-master-411206",
+      id: "admin-master-dunok41126",
       code: ADMIN_MASTER_CODE,
       type: "permanent",
       createdAt: "2026-01-01T00:00:00.000Z",
