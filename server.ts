@@ -38,9 +38,9 @@ app.get(["/dun.exe", "/api/download/exe"], (req, res) => {
 // Endpoint kiểm tra phiên bản mới cho ứng dụng
 app.get("/api/version", (req, res) => {
   res.json({
-    version: "1.0.2",
+    version: "1.0.3",
     downloadUrl: "https://lolo-h0f4.onrender.com/dun.exe",
-    changelog: "Căn giữa màn hình, ghim Topmost, thêm phím tắt Alt+A",
+    changelog: "Giao diện mới Brave mặc định, phím tắt nổi bật, tối ưu bộ nhớ",
     publishedAt: new Date().toISOString()
   });
 });
